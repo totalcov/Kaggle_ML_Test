@@ -2,9 +2,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
 
-train = pd.read_csv('train.csv')
-test = pd.read_csv('test.csv')
+train = pd.read_csv('Titanic_competition/train.csv')
+test = pd.read_csv('Titanic_competition/test.csv')
 
 
 age_median = train['Age'].median()
@@ -36,32 +37,23 @@ y = train.Survived
 main_sign = ['Pclass', 'Sex_num', 'Age', "Embarked_num", 'SibSp', 'Parch', "Fare"]
 x = train[main_sign]
 
-train_x, val_x, train_y, val_y = train_test_split(x, y, test_size=0.2,  random_state = 0, stratify=y)
-
-
-def get_best(max_leaf_nodes, train_x, val_x, train_y, val_y):
-    titanic_model_train = RandomForestClassifier(max_leaf_nodes=max_leaf_nodes   ,random_state=1, n_estimators=100)
-    titanic_model_train.fit(train_x, train_y)
-    predictions_val = titanic_model_train.predict(val_x)
-    accuracy = accuracy_score(val_y, predictions_val)
-    return accuracy
-
-test_col_vo = [5,10,15,20,25,30,35,40,45,50,55,58,60,61,65,70,75,80,85,90,95,100,110,120]
-
+test_col_vo = [3,5,7,10,12,15,20,25,30,35,40,45,48,50,55,60,65,70,75,80,85,90,95,100]
 
 best_accuracy = 0
 best_leaf_nodes = None
 
-for i in test_col_vo:
-    acc = get_best(i, train_x, val_x, train_y, val_y)
-    if acc > best_accuracy:  # ищем максимальную точность, не минимальную
-        best_accuracy = acc
-        best_leaf_nodes = i
-        
+for leaf in test_col_vo:
+    model = RandomForestClassifier(max_leaf_nodes=leaf, random_state=1, n_estimators=100)
+    score = cross_val_score(model, x, y, cv=5, scoring='accuracy')
+
+    mean_score = score.mean()
+
+    if mean_score > best_accuracy:
+        best_accuracy = mean_score
+        best_leaf_nodes = leaf
+
 print(best_accuracy, best_leaf_nodes)
-
-
-
+#-- реализация самой модели 
 main_model = RandomForestClassifier(max_leaf_nodes=best_leaf_nodes, random_state=1, n_estimators=100)
 main_model.fit(x, y)
 
@@ -75,4 +67,4 @@ submission = pd.DataFrame({
     "Survived": ret
 })
 
-submission.to_csv("submission.csv", index=False)
+submission.to_csv("Titanic_competition/submission.csv", index=False)
