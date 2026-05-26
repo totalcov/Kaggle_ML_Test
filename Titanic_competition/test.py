@@ -4,6 +4,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 
 
-bd = pd.read_csv('test.csv')
+bd = pd.read_csv('Titanic_competition/test.csv')
 
 print(bd.head())
+
